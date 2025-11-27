@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitoring des services tiers</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Supervision</p>
+      <h1>Statut des services tiers</h1>
+      <p class="lede">
+        Vue consolidée des pages de statut externes. Les données sont lues depuis <code>services.json</code> :
+        mettez à jour ce fichier pour refléter vos fournisseurs ou leur état du moment.
+      </p>
+    </div>
+    <div class="controls">
+      <label class="search">
+        <span>Rechercher</span>
+        <input id="search" type="search" placeholder="Zoho, Stripe, OVH..." />
+      </label>
+      <button id="refresh" type="button" class="ghost">Recharger les données</button>
+      <p class="muted" id="autorefresh-hint">Rafraîchissement automatique toutes les 60 secondes.</p>
+      <p class="muted" id="last-updated" aria-live="polite"></p>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary" aria-live="polite"></section>
+    <section id="grid" class="grid" aria-live="polite"></section>
+  </main>
+
+  <template id="service-card">
+    <article class="card">
+      <header class="card__header">
+        <div>
+          <p class="eyebrow">Service</p>
+          <h2 class="card__title"></h2>
+        </div>
+        <span class="badge" role="status"></span>
+      </header>
+      <p class="card__description"></p>
+      <dl class="card__meta">
+        <div>
+          <dt>URL statut</dt>
+          <dd class="status-url"></dd>
+        </div>
+        <div>
+          <dt>Notes</dt>
+          <dd class="notes"></dd>
+        </div>
+      </dl>
+      <div class="card__actions">
+        <a class="button" target="_blank" rel="noreferrer">Ouvrir la page</a>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>
