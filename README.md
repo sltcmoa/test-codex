@@ -26,10 +26,4 @@ Comme l'interface est 100 % statique (HTML/CSS/JS), plusieurs options simples s'
 - **Serveur jetable** : `npx serve .` si Node.js est disponible (installe automatiquement un serveur statique éphémère).
 - **Hébergement statique** : copiez simplement les fichiers du dossier (`index.html`, `styles.css`, `app.js`, `services.json`) sur un hébergement de fichiers statiques (Netlify, Vercel, GitHub Pages, S3 + CloudFront, etc.). Aucun backend n'est nécessaire.
 
-### Notes GitHub Pages
-
-- Déployez depuis la racine du dépôt (ou le dossier `/docs`) et assurez-vous que `services.json` est bien publié au même niveau que `index.html`.
-- Les chemins sont relatifs (`./services.json`, `./styles.css`, `./app.js`) pour fonctionner avec les URL GitHub Pages de type `https://<utilisateur>.github.io/<repo>/`.
-- Si vous utilisez un thème Jekyll, ajoutez éventuellement un fichier `.nojekyll` pour servir les fichiers tels quels.
-
 Dans tous les cas, vérifiez que `services.json` est accessible sur le même domaine/port que `index.html`, car les requêtes sont effectuées côté navigateur.

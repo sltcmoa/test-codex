@@ -21,10 +21,8 @@ const statusPriority = {
   operational: 3,
 };
 
-const SERVICES_URL = new URL('./services.json', window.location.href);
-
 async function loadServices() {
-  const response = await fetch(SERVICES_URL.href, { cache: 'no-store' });
+  const response = await fetch('services.json', { cache: 'no-store' });
   if (!response.ok) {
     throw new Error('Impossible de lire services.json');
   }
@@ -100,9 +98,7 @@ async function bootstrap() {
       renderServices(servicesCache);
       lastUpdated.textContent = `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-FR')}`;
     } catch (error) {
-      console.error('Erreur de rafraîchissement des statuts', error);
       summary.innerHTML = `<div class="summary-banner" style="color:#fca5a5;border-color:rgba(248,113,113,0.4);background:rgba(248,113,113,0.08)">Erreur : ${error.message}</div>`;
-      lastUpdated.textContent = 'Dernière mise à jour : échec du chargement des données';
     }
   }
 
