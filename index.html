@@ -8,19 +8,15 @@
 </head>
 <body>
   <header class="page-header">
-    <div>
+    <div class="hero">
       <p class="eyebrow">Supervision</p>
       <h1>Statut des services tiers</h1>
       <p class="lede">
-        Vue consolidée des pages de statut externes. Les données sont lues depuis <code>services.json</code> :
-        mettez à jour ce fichier pour refléter vos fournisseurs ou leur état du moment.
+        Vue prête pour affichage plein écran : la liste se met à jour automatiquement et met en avant les incidents
+        et maintenances sans action manuelle.
       </p>
     </div>
     <div class="controls">
-      <label class="search">
-        <span>Rechercher</span>
-        <input id="search" type="search" placeholder="Zoho, Stripe, OVH..." />
-      </label>
       <button id="refresh" type="button" class="ghost">Recharger les données</button>
       <p class="muted" id="autorefresh-hint">Rafraîchissement automatique toutes les 60 secondes.</p>
       <p class="muted" id="last-updated" aria-live="polite"></p>

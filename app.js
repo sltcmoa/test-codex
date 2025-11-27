@@ -1,6 +1,5 @@
 const statusGrid = document.querySelector('#grid');
 const summary = document.querySelector('#summary');
-const searchInput = document.querySelector('#search');
 const refreshButton = document.querySelector('#refresh');
 const lastUpdated = document.querySelector('#last-updated');
 const template = document.querySelector('#service-card');
@@ -13,6 +12,13 @@ const statusLabels = {
   degraded: 'Dégradation',
   down: 'Incident',
   unknown: 'Inconnu',
+};
+
+const statusPriority = {
+  down: 0,
+  degraded: 1,
+  unknown: 2,
+  operational: 3,
 };
 
 async function loadServices() {
@@ -37,6 +43,7 @@ function createCard(service) {
   description.textContent = service.description;
 
   const state = service.status ?? 'unknown';
+  card.dataset.state = state;
   badge.dataset.state = state;
   badge.textContent = statusLabels[state] ?? statusLabels.unknown;
 
@@ -51,7 +58,21 @@ function createCard(service) {
 function renderSummary(services) {
   const total = services.length;
   const ok = services.filter((service) => service.status === 'operational').length;
-  summary.innerHTML = `<div class="summary-banner">${ok}/${total} services signalés comme opérationnels</div>`;
+  const incidents = services.filter((service) => service.status === 'down');
+  const maintenances = services.filter((service) => service.status === 'degraded');
+
+  const issuePills = [...incidents, ...maintenances]
+    .map((service) => `<span class="issue-pill" data-state="${service.status}">${statusLabels[service.status]} · ${service.name}</span>`)
+    .join('');
+
+  const issuesRow = issuePills ? `<div class="issues-row" aria-live="polite">${issuePills}</div>` : '';
+
+  summary.innerHTML = `
+    <div class="summary-banner">
+      <span><strong>${ok}/${total}</strong> services signalés comme opérationnels</span>
+      ${issuesRow || '<span>Aucun incident ou maintenance signalé.</span>'}
+    </div>
+  `;
 }
 
 function renderServices(services) {
@@ -59,12 +80,12 @@ function renderServices(services) {
   services.forEach((service) => statusGrid.appendChild(createCard(service)));
 }
 
-function filterServices(services, term) {
-  const normalized = term.trim().toLowerCase();
-  if (!normalized) return services;
-  return services.filter((service) => {
-    return service.name.toLowerCase().includes(normalized) ||
-      (service.description && service.description.toLowerCase().includes(normalized));
+function sortServices(services) {
+  return [...services].sort((a, b) => {
+    const aPriority = statusPriority[a.status] ?? statusPriority.unknown;
+    const bPriority = statusPriority[b.status] ?? statusPriority.unknown;
+    if (aPriority !== bPriority) return aPriority - bPriority;
+    return (a.name || '').localeCompare(b.name || '');
   });
 }
 
@@ -72,9 +93,9 @@ async function bootstrap() {
   async function refreshAndRender() {
     try {
       const services = await loadServices();
-      servicesCache = services;
-      renderSummary(services);
-      renderServices(filterServices(services, searchInput.value));
+      servicesCache = sortServices(services);
+      renderSummary(servicesCache);
+      renderServices(servicesCache);
       lastUpdated.textContent = `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-FR')}`;
     } catch (error) {
       summary.innerHTML = `<div class="summary-banner" style="color:#fca5a5;border-color:rgba(248,113,113,0.4);background:rgba(248,113,113,0.08)">Erreur : ${error.message}</div>`;
@@ -82,11 +103,6 @@ async function bootstrap() {
   }
 
   await refreshAndRender();
-
-  searchInput.addEventListener('input', (event) => {
-    const filtered = filterServices(servicesCache, event.target.value);
-    renderServices(filtered);
-  });
 
   refreshButton.addEventListener('click', refreshAndRender);
 
