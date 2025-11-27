@@ -6,7 +6,7 @@ Interface statique pour suivre rapidement les pages de statut des fournisseurs t
 
 1. Ouvrez `index.html` dans un navigateur ou servez le dossier avec un serveur statique (`python -m http.server 8000`).
 2. Utilisez la barre de recherche pour filtrer les fournisseurs.
-3. Cliquez sur « Recharger les données » si vous modifiez `services.json` pendant que la page est ouverte.
+3. Les données sont rechargées automatiquement toutes les 60 secondes. Cliquez sur « Recharger les données » pour forcer un rafraîchissement immédiat si vous modifiez `services.json` pendant que la page est ouverte.
 
 ## Mettre à jour la liste
 
@@ -18,3 +18,13 @@ Interface statique pour suivre rapidement les pages de statut des fournisseurs t
   - `notes`: consignes internes (optionnel)
 
 Les statuts sont déclaratifs : mettez-les à jour manuellement en fonction des pages officielles ou de vos propres sondes internes.
+
+## Déploiement rapide
+
+Comme l'interface est 100 % statique (HTML/CSS/JS), plusieurs options simples s'offrent à vous pour la tester ou la publier :
+
+- **Serveur local rapide** : `python -m http.server 8000` puis ouvrez http://localhost:8000 dans votre navigateur.
+- **Serveur jetable** : `npx serve .` si Node.js est disponible (installe automatiquement un serveur statique éphémère).
+- **Hébergement statique** : copiez simplement les fichiers du dossier (`index.html`, `styles.css`, `app.js`, `services.json`) sur un hébergement de fichiers statiques (Netlify, Vercel, GitHub Pages, S3 + CloudFront, etc.). Aucun backend n'est nécessaire.
+
+Dans tous les cas, vérifiez que `services.json` est accessible sur le même domaine/port que `index.html`, car les requêtes sont effectuées côté navigateur.

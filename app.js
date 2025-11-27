@@ -2,7 +2,11 @@ const statusGrid = document.querySelector('#grid');
 const summary = document.querySelector('#summary');
 const searchInput = document.querySelector('#search');
 const refreshButton = document.querySelector('#refresh');
+const lastUpdated = document.querySelector('#last-updated');
 const template = document.querySelector('#service-card');
+
+const AUTO_REFRESH_MS = 60_000;
+let servicesCache = [];
 
 const statusLabels = {
   operational: 'Opérationnel',
@@ -65,24 +69,28 @@ function filterServices(services, term) {
 }
 
 async function bootstrap() {
-  try {
-    const services = await loadServices();
-    renderSummary(services);
-    renderServices(services);
-
-    searchInput.addEventListener('input', (event) => {
-      const filtered = filterServices(services, event.target.value);
-      renderServices(filtered);
-    });
-
-    refreshButton.addEventListener('click', async () => {
-      const updated = await loadServices();
-      renderSummary(updated);
-      renderServices(filterServices(updated, searchInput.value));
-    });
-  } catch (error) {
-    summary.innerHTML = `<div class="summary-banner" style="color:#fca5a5;border-color:rgba(248,113,113,0.4);background:rgba(248,113,113,0.08)">Erreur : ${error.message}</div>`;
+  async function refreshAndRender() {
+    try {
+      const services = await loadServices();
+      servicesCache = services;
+      renderSummary(services);
+      renderServices(filterServices(services, searchInput.value));
+      lastUpdated.textContent = `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-FR')}`;
+    } catch (error) {
+      summary.innerHTML = `<div class="summary-banner" style="color:#fca5a5;border-color:rgba(248,113,113,0.4);background:rgba(248,113,113,0.08)">Erreur : ${error.message}</div>`;
+    }
   }
+
+  await refreshAndRender();
+
+  searchInput.addEventListener('input', (event) => {
+    const filtered = filterServices(servicesCache, event.target.value);
+    renderServices(filtered);
+  });
+
+  refreshButton.addEventListener('click', refreshAndRender);
+
+  setInterval(refreshAndRender, AUTO_REFRESH_MS);
 }
 
 bootstrap();
