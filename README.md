@@ -5,8 +5,7 @@ Interface statique pour suivre rapidement les pages de statut des fournisseurs t
 ## Utilisation
 
 1. Ouvrez `index.html` dans un navigateur ou servez le dossier avec un serveur statique (`python -m http.server 8000`).
-2. Utilisez la barre de recherche pour filtrer les fournisseurs.
-3. Les données sont rechargées automatiquement toutes les 60 secondes. Cliquez sur « Recharger les données » pour forcer un rafraîchissement immédiat si vous modifiez `services.json` pendant que la page est ouverte.
+2. Les données sont rechargées automatiquement toutes les 60 secondes. Cliquez sur « Recharger les données » pour forcer un rafraîchissement immédiat si vous modifiez `services.json` pendant que la page est ouverte.
 
 ## Mettre à jour la liste
 
