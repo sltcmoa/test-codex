@@ -1,7 +1,6 @@
 const statusGrid = document.querySelector('#grid');
 const summary = document.querySelector('#summary');
 const refreshButton = document.querySelector('#refresh');
-const fullscreenButton = document.querySelector('#fullscreen');
 const lastUpdated = document.querySelector('#last-updated');
 const template = document.querySelector('#service-card');
 
@@ -22,10 +21,8 @@ const statusPriority = {
   operational: 3,
 };
 
-const SERVICES_URL = new URL('./services.json', window.location.href);
-
 async function loadServices() {
-  const response = await fetch(SERVICES_URL.href, { cache: 'no-store' });
+  const response = await fetch('services.json', { cache: 'no-store' });
   if (!response.ok) {
     throw new Error('Impossible de lire services.json');
   }
@@ -65,37 +62,15 @@ function renderSummary(services) {
   const maintenances = services.filter((service) => service.status === 'degraded');
 
   const issuePills = [...incidents, ...maintenances]
-    .map(
-      (service) =>
-        `<span class="issue-pill" data-state="${service.status}">${statusLabels[service.status]} · ${service.name}</span>`
-    )
+    .map((service) => `<span class="issue-pill" data-state="${service.status}">${statusLabels[service.status]} · ${service.name}</span>`)
     .join('');
 
-  const issuesRow = issuePills
-    ? `<div class="issues-row" aria-live="polite">${issuePills}</div>`
-    : '<p class="muted no-issues">Aucun incident ou maintenance signalé.</p>';
+  const issuesRow = issuePills ? `<div class="issues-row" aria-live="polite">${issuePills}</div>` : '';
 
   summary.innerHTML = `
     <div class="summary-banner">
-      <div class="summary-metrics" role="list">
-        <div class="metric" data-state="down" role="listitem">
-          <p class="metric__label">Incidents</p>
-          <p class="metric__value">${incidents.length}</p>
-        </div>
-        <div class="metric" data-state="degraded" role="listitem">
-          <p class="metric__label">Maintenances</p>
-          <p class="metric__value">${maintenances.length}</p>
-        </div>
-        <div class="metric" data-state="operational" role="listitem">
-          <p class="metric__label">Opérationnels</p>
-          <p class="metric__value">${ok}</p>
-        </div>
-        <div class="metric" data-state="total" role="listitem">
-          <p class="metric__label">Total</p>
-          <p class="metric__value">${total}</p>
-        </div>
-      </div>
-      ${issuesRow}
+      <span><strong>${ok}/${total}</strong> services signalés comme opérationnels</span>
+      ${issuesRow || '<span>Aucun incident ou maintenance signalé.</span>'}
     </div>
   `;
 }
@@ -114,29 +89,6 @@ function sortServices(services) {
   });
 }
 
-function updateFullscreenButton() {
-  const isFullscreen = Boolean(document.fullscreenElement);
-  fullscreenButton.textContent = isFullscreen ? 'Quitter le plein écran' : 'Plein écran';
-  fullscreenButton.setAttribute(
-    'aria-label',
-    isFullscreen ? 'Quitter le mode plein écran' : 'Activer le mode plein écran pour le tableau de bord'
-  );
-}
-
-async function toggleFullscreen() {
-  try {
-    if (!document.fullscreenElement) {
-      await document.documentElement.requestFullscreen();
-    } else {
-      await document.exitFullscreen();
-    }
-  } catch (error) {
-    console.error('Impossible de basculer en plein écran', error);
-  } finally {
-    updateFullscreenButton();
-  }
-}
-
 async function bootstrap() {
   async function refreshAndRender() {
     try {
@@ -144,20 +96,15 @@ async function bootstrap() {
       servicesCache = sortServices(services);
       renderSummary(servicesCache);
       renderServices(servicesCache);
-      lastUpdated.textContent = `Dernière mise à jour : ${new Date().toLocaleString('fr-FR')}`;
+      lastUpdated.textContent = `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-FR')}`;
     } catch (error) {
-      console.error('Erreur de rafraîchissement des statuts', error);
       summary.innerHTML = `<div class="summary-banner" style="color:#fca5a5;border-color:rgba(248,113,113,0.4);background:rgba(248,113,113,0.08)">Erreur : ${error.message}</div>`;
-      lastUpdated.textContent = 'Dernière mise à jour : échec du chargement des données';
     }
   }
 
   await refreshAndRender();
 
   refreshButton.addEventListener('click', refreshAndRender);
-  fullscreenButton.addEventListener('click', toggleFullscreen);
-  document.addEventListener('fullscreenchange', updateFullscreenButton);
-  updateFullscreenButton();
 
   setInterval(refreshAndRender, AUTO_REFRESH_MS);
 }
