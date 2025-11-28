@@ -38,7 +38,7 @@
     {
       "name": "Sogecommerce",
       "status": "operational",
-      "statusUrl": "https://status.sogecommerce.societegenerale.eu/",
+      "statusUrl": "https://sogecommerce.status.lyra.com/",
       "description": "Paiement Société Générale",
       "notes": "Statut manuel si l'API n'est pas publique."
     },
