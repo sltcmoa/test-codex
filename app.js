@@ -22,15 +22,16 @@ const statusPriority = {
   operational: 3,
 };
 
-const SERVICES_URL = new URL('./services.json', window.location.href);
-
 async function loadServices() {
-  const response = await fetch(SERVICES_URL.href, { cache: 'no-store' });
+  const response = await fetch('/api/status', { cache: 'no-store' });
   if (!response.ok) {
-    throw new Error('Impossible de lire services.json');
+    throw new Error('Impossible de récupérer les statuts dynamiques');
   }
   const payload = await response.json();
-  return payload.services ?? [];
+  return {
+    services: payload.services ?? [],
+    fetchedAt: payload.fetchedAt ?? new Date().toISOString(),
+  };
 }
 
 function createCard(service) {
@@ -50,8 +51,11 @@ function createCard(service) {
   badge.dataset.state = state;
   badge.textContent = statusLabels[state] ?? statusLabels.unknown;
 
+  const statusNotes = service.statusDetails ? `Source : ${service.statusDetails}` : '';
+  const baseNotes = service.notes && service.notes.trim().length ? service.notes : '—';
+  notes.innerHTML = statusNotes ? `${baseNotes}<br><span class="muted">${statusNotes}</span>` : baseNotes;
+
   url.innerHTML = `<a href="${service.statusUrl}" target="_blank" rel="noreferrer">${service.statusUrl}</a>`;
-  notes.textContent = service.notes ?? '—';
   button.href = service.statusUrl;
   button.setAttribute('aria-label', `Ouvrir la page de statut de ${service.name}`);
 
@@ -140,11 +144,11 @@ async function toggleFullscreen() {
 async function bootstrap() {
   async function refreshAndRender() {
     try {
-      const services = await loadServices();
+      const { services, fetchedAt } = await loadServices();
       servicesCache = sortServices(services);
       renderSummary(servicesCache);
       renderServices(servicesCache);
-      lastUpdated.textContent = `Dernière mise à jour : ${new Date().toLocaleString('fr-FR')}`;
+      lastUpdated.textContent = `Dernière mise à jour : ${new Date(fetchedAt).toLocaleString('fr-FR')}`;
     } catch (error) {
       console.error('Erreur de rafraîchissement des statuts', error);
       summary.innerHTML = `<div class="summary-banner" style="color:#fca5a5;border-color:rgba(248,113,113,0.4);background:rgba(248,113,113,0.08)">Erreur : ${error.message}</div>`;
