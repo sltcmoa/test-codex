@@ -23,15 +23,41 @@ const statusPriority = {
 };
 
 async function loadServices() {
-  const response = await fetch('/api/status', { cache: 'no-store' });
-  if (!response.ok) {
-    throw new Error('Impossible de récupérer les statuts dynamiques');
+  // Try dynamic aggregation first (requires the Node backend). If unavailable (e.g. GitHub Pages),
+  // fall back to the static services.json to keep the dashboard usable.
+  try {
+    const response = await fetch('/api/status', { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`API hors service (code ${response.status})`);
+    }
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      throw new Error('Réponse inattendue du collecteur');
+    }
+    const payload = await response.json();
+    return {
+      services: payload.services ?? [],
+      fetchedAt: payload.fetchedAt ?? new Date().toISOString(),
+      isFallback: false,
+    };
+  } catch (error) {
+    console.warn('Collecte dynamique indisponible, passage au mode statique', error);
+    const staticResponse = await fetch('./services.json', { cache: 'no-store' });
+    if (!staticResponse.ok) {
+      throw new Error("Impossible de récupérer les statuts dynamiques ni la sauvegarde statique");
+    }
+    const payload = await staticResponse.json();
+    const services = (payload.services ?? []).map((service) => ({
+      ...service,
+      status: service.status ?? service.fallbackStatus ?? 'unknown',
+      statusDetails: 'Chargé depuis la configuration statique (aucun backend disponible)',
+    }));
+    return {
+      services,
+      fetchedAt: new Date().toISOString(),
+      isFallback: true,
+    };
   }
-  const payload = await response.json();
-  return {
-    services: payload.services ?? [],
-    fetchedAt: payload.fetchedAt ?? new Date().toISOString(),
-  };
 }
 
 function createCard(service) {
@@ -144,11 +170,13 @@ async function toggleFullscreen() {
 async function bootstrap() {
   async function refreshAndRender() {
     try {
-      const { services, fetchedAt } = await loadServices();
+      const { services, fetchedAt, isFallback } = await loadServices();
       servicesCache = sortServices(services);
       renderSummary(servicesCache);
       renderServices(servicesCache);
-      lastUpdated.textContent = `Dernière mise à jour : ${new Date(fetchedAt).toLocaleString('fr-FR')}`;
+      lastUpdated.textContent = isFallback
+        ? 'Dernière mise à jour : mode statique (backend indisponible)'
+        : `Dernière mise à jour : ${new Date(fetchedAt).toLocaleString('fr-FR')}`;
     } catch (error) {
       console.error('Erreur de rafraîchissement des statuts', error);
       summary.innerHTML = `<div class="summary-banner" style="color:#fca5a5;border-color:rgba(248,113,113,0.4);background:rgba(248,113,113,0.08)">Erreur : ${error.message}</div>`;

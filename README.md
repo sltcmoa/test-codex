@@ -42,6 +42,13 @@ Après modification, relancez le serveur pour recharger la configuration.
 
 - **Serveur local** : `npm run start` puis ouvrez http://localhost:3000.
 - **Reverse proxy** : publiez le serveur derrière un proxy (Nginx/Traefik) si vous souhaitez exposer le dashboard ; toutes les ressources sont servies par `server.js`.
-- **Statique uniquement ?** : la version actuelle nécessite le backend Node pour appeler les API de statut (CORS). Un hébergement purement statique ne permettra pas de récupérer les statuts dynamiques.
+- **Statique uniquement ?** : la version actuelle nécessite le backend Node pour appeler les API de statut (CORS). Un hébergement purement statique ne permettra pas de récupérer les statuts dynamiques, mais l'interface basculera automatiquement sur `services.json` et affichera les états `fallbackStatus` si le backend est indisponible (bandeau « mode statique » en haut).
+- **GitHub Pages** : vous pouvez publier les fichiers statiques (`index.html`, `styles.css`, `app.js`, `services.json`) sur GitHub Pages. Sans backend Node, le dashboard passera en lecture statique : il chargera `services.json`, marquera chaque carte avec la note « Chargé depuis la configuration statique (aucun backend disponible) » et ne pourra pas interroger les API tierces. GitHub Pages n’exécute pas de code serveur et ne peut pas contourner les CORS des APIs tierces : pour du dynamique, exposez un backend `/api/status` hébergé ailleurs (petit serveur Node, Function, Cloudflare Worker, etc.) et paramétrez un proxy ou un sous-domaine vers ce backend.
+
+### Pourquoi les données dynamiques ne fonctionnent pas sur GitHub Pages ?
+
+- GitHub Pages sert uniquement des fichiers statiques ; aucun code serveur n’y tourne pour appeler les APIs de statut et bypasser les restrictions CORS.
+- Les pages de statut tierces refusent souvent les requêtes directes depuis le navigateur (CORS). Le backend `/api/status` du projet est justement là pour faire ces appels côté serveur.
+- Résultat : sur Pages, l’interface bascule en « mode statique » et affiche `services.json`. Pour obtenir des données temps réel, vous devez déployer le backend Node (ou équivalent) sur une plateforme qui autorise les requêtes sortantes (ex. Render, Fly.io, Railway, Vercel/Functions) et pointer `/api/status` vers ce backend.
 
 Dans tous les cas, vérifiez que `services.json` reste au même niveau que `index.html`, car le serveur l’utilise pour déterminer les sources des statuts.
