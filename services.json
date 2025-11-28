@@ -1,0 +1,88 @@
+{
+  "services": [
+    {
+      "name": "Zoho",
+      "status": "operational",
+      "statusUrl": "https://status.zoho.eu/",
+      "description": "Suite Zoho (Mail, Desk, CRM)",
+      "notes": "Vérifier les sous-produits sur la page Zoho."
+    },
+    {
+      "name": "Microsoft 365",
+      "status": "operational",
+      "statusUrl": "https://status.office365.com/",
+      "description": "Messagerie, Teams, SharePoint",
+      "notes": "Consulter le Centre d'administration pour plus de détails."
+    },
+    {
+      "name": "Fasterize",
+      "status": "operational",
+      "statusUrl": "https://status.fasterize.com/",
+      "description": "Optimisation front-end",
+      "notes": "Page Statuspage.io"
+    },
+    {
+      "name": "OVHcloud",
+      "status": "operational",
+      "statusUrl": "https://www.status-ovhcloud.com/",
+      "description": "Hébergement, réseau et cloud",
+      "notes": "Inclut incidents datacenters."
+    },
+    {
+      "name": "Doofinder",
+      "status": "operational",
+      "statusUrl": "https://status.doofinder.com/",
+      "description": "Moteur de recherche e-commerce",
+      "notes": ""
+    },
+    {
+      "name": "Sogecommerce",
+      "status": "unknown",
+      "statusUrl": "https://status.sogecommerce.societegenerale.eu/",
+      "description": "Paiement Société Générale",
+      "notes": "Statut manuel si l'API n'est pas publique."
+    },
+    {
+      "name": "Payplug",
+      "status": "operational",
+      "statusUrl": "https://status.payplug.com/",
+      "description": "Paiements en ligne",
+      "notes": ""
+    },
+    {
+      "name": "Stripe",
+      "status": "operational",
+      "statusUrl": "https://status.stripe.com/",
+      "description": "Paiements et facturation",
+      "notes": "Inclut incidents régionaux."
+    },
+    {
+      "name": "Systempay / Lyra",
+      "status": "operational",
+      "statusUrl": "https://status.lyra.com/",
+      "description": "Solution de paiement Systempay",
+      "notes": "Suivi maintenance & incident."
+    },
+    {
+      "name": "PostFinance",
+      "status": "unknown",
+      "statusUrl": "https://status-checkout.postfinance.ch/",
+      "description": "Paiement PostFinance",
+      "notes": "Mettre à jour manuellement."
+    },
+    {
+      "name": "unyc Fibre",
+      "status": "operational",
+      "statusUrl": "https://statut.unyc.io/",
+      "description": "Connectivité fibre unyc",
+      "notes": ""
+    },
+    {
+      "name": "OpenAI",
+      "status": "operational",
+      "statusUrl": "https://status.openai.com/",
+      "description": "API OpenAI",
+      "notes": "Mettre à jour selon dashboard."
+    }
+  ]
+}
