@@ -28,13 +28,12 @@ body {
     radial-gradient(circle at 80% 0%, rgba(244, 114, 182, 0.1), transparent 25%),
     var(--bg);
   color: var(--text);
-  padding: 18px 0 32px 0;
 }
 
 main {
-  width: min(1800px, 98vw);
+  width: min(1600px, 100%);
   margin: 0 auto 48px auto;
-  padding: 0 24px 48px 24px;
+  padding: 0 32px 48px 32px;
   flex: 1;
 }
 
@@ -42,9 +41,9 @@ main {
   display: flex;
   flex-wrap: wrap;
   gap: 24px;
-  width: min(1800px, 98vw);
+  width: min(1600px, 100%);
   margin: 0 auto;
-  padding: 8px 24px 18px 24px;
+  padding: 32px 32px 12px 32px;
   align-items: flex-start;
   justify-content: space-between;
 }
@@ -55,15 +54,14 @@ main {
 
 h1 {
   margin: 8px 0 12px 0;
-  font-size: clamp(32px, 5vw, 42px);
+  font-size: clamp(28px, 4vw, 38px);
   letter-spacing: -0.5px;
 }
 
 .lede {
-  max-width: 940px;
+  max-width: 740px;
   color: var(--muted);
-  line-height: 1.55;
-  font-size: 17px;
+  line-height: 1.5;
 }
 
 .controls {
@@ -120,7 +118,6 @@ button.ghost {
   flex-direction: column;
   gap: 10px;
   min-height: 220px;
-  position: relative;
 }
 
 .card__header {
@@ -209,13 +206,11 @@ button.ghost {
 .card[data-state="degraded"] {
   border-color: rgba(245, 158, 11, 0.6);
   box-shadow: 0 12px 30px rgba(245, 158, 11, 0.2);
-  outline: 2px solid rgba(245, 158, 11, 0.35);
 }
 
 .card[data-state="down"] {
   border-color: rgba(248, 113, 113, 0.7);
   box-shadow: 0 14px 34px rgba(248, 113, 113, 0.3);
-  outline: 2px solid rgba(248, 113, 113, 0.5);
 }
 
 .card[data-state="unknown"] {
@@ -239,101 +234,41 @@ button.ghost {
 }
 
 .summary-banner {
-  background: linear-gradient(120deg, rgba(34, 211, 238, 0.15), rgba(59, 130, 246, 0.08));
-  border: 1px solid rgba(34, 211, 238, 0.35);
-  color: #e0f2fe;
+  background: rgba(34, 211, 238, 0.08);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  color: #a5f3fc;
   border-radius: var(--radius);
-  padding: 16px 18px;
-  display: flex;
+  padding: 12px 14px;
+  display: inline-flex;
   flex-direction: column;
-  gap: 14px;
-  margin-bottom: 22px;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 18px;
   font-weight: 600;
-  box-shadow: 0 14px 28px rgba(34, 211, 238, 0.1);
 }
 
-.summary-metrics {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 12px;
-  width: 100%;
-}
-
-.metric {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-height: 96px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
-}
-
-.metric__label {
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.metric__value {
-  margin: 0;
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-}
-
-.metric[data-state="down"] {
-  border-color: rgba(248, 113, 113, 0.7);
-  background: rgba(248, 113, 113, 0.12);
-  color: #fecdd3;
-}
-
-.metric[data-state="degraded"] {
-  border-color: rgba(245, 158, 11, 0.7);
-  background: rgba(245, 158, 11, 0.12);
-  color: #fde68a;
-}
-
-.metric[data-state="operational"] {
-  border-color: rgba(52, 211, 153, 0.6);
-  background: rgba(52, 211, 153, 0.12);
-  color: #bbf7d0;
-}
-
-.metric[data-state="total"] {
-  border-color: rgba(59, 130, 246, 0.6);
-  background: rgba(59, 130, 246, 0.14);
-  color: #bfdbfe;
+.summary-banner strong {
+  color: #e0f2fe;
 }
 
 .issues-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin: 4px 0 0 0;
-}
-
-.no-issues {
-  margin: 0;
-  font-size: 15px;
+  gap: 8px;
+  margin: 8px 0 0 0;
 }
 
 .issue-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 12px;
   background: rgba(248, 113, 113, 0.12);
   border: 1px solid rgba(248, 113, 113, 0.4);
   color: #fecdd3;
   font-weight: 700;
-  box-shadow: 0 8px 18px rgba(248, 113, 113, 0.25);
-  font-size: 15px;
+  box-shadow: 0 6px 18px rgba(248, 113, 113, 0.2);
 }
 
 .issue-pill[data-state="degraded"] {
@@ -349,20 +284,6 @@ button.ghost {
   height: 10px;
   border-radius: 50%;
   background: currentColor;
-}
-
-@media (min-width: 1280px) {
-  .grid {
-    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-  }
-
-  .card__title {
-    font-size: 21px;
-  }
-
-  .card__description {
-    font-size: 15px;
-  }
 }
 
 @media (max-width: 620px) {
