@@ -3,7 +3,7 @@
     {
       "name": "Zoho",
       "status": "operational",
-      "statusUrl": "https://status.zoho.eu/",
+      "statusUrl": "https://status.zoho.com/",
       "description": "Suite Zoho (Mail, Desk, CRM)",
       "notes": "Vérifier les sous-produits sur la page Zoho."
     },
@@ -66,7 +66,7 @@
     {
       "name": "PostFinance",
       "status": "unknown",
-      "statusUrl": "https://status-checkout.postfinance.ch/",
+      "statusUrl": "https://www.postfinance.ch/fr/support/status.html",
       "description": "Paiement PostFinance",
       "notes": "Mettre à jour manuellement."
     },
