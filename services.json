@@ -3,9 +3,9 @@
     {
       "name": "Zoho",
       "status": "operational",
-      "statusUrl": "https://status.zoho.com/",
+      "statusUrl": "https://status.zoho.eu/",
       "description": "Suite Zoho (Mail, Desk, CRM)",
-      "notes": "Vérifier les sous-produits sur la page Zoho."
+      "notes": "Instance européenne (status.zoho.eu) pour suivre les services EU."
     },
     {
       "name": "Microsoft 365",
@@ -66,9 +66,9 @@
     {
       "name": "PostFinance",
       "status": "unknown",
-      "statusUrl": "https://www.postfinance.ch/fr/support/status.html",
+      "statusUrl": "https://status-checkout.postfinance.ch/",
       "description": "Paiement PostFinance",
-      "notes": "Mettre à jour manuellement."
+      "notes": "Page checkout dédiée (status-checkout.postfinance.ch)."
     },
     {
       "name": "unyc Fibre",
