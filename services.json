@@ -37,7 +37,7 @@
     },
     {
       "name": "Sogecommerce",
-      "status": "unknown",
+      "status": "operational",
       "statusUrl": "https://status.sogecommerce.societegenerale.eu/",
       "description": "Paiement Société Générale",
       "notes": "Statut manuel si l'API n'est pas publique."
@@ -65,7 +65,7 @@
     },
     {
       "name": "PostFinance",
-      "status": "unknown",
+      "status": "operational",
       "statusUrl": "https://status-checkout.postfinance.ch/",
       "description": "Paiement PostFinance",
       "notes": "Page checkout dédiée (status-checkout.postfinance.ch)."
