@@ -1,0 +1,151 @@
+{
+  "services": [
+    {
+      "name": "Zoho",
+      "statusUrl": "https://status.zoho.eu/",
+      "description": "Suite Zoho (Mail, Desk, CRM)",
+      "notes": "Instance européenne (status.zoho.eu) pour suivre les services EU.",
+      "source": {
+        "type": "statuspage",
+        "api": "https://status.zoho.eu/api/v2/status.json",
+        "apiCandidates": ["https://status.zoho.eu/api/v2/summary.json"],
+        "htmlFallback": true
+      },
+      "fallbackStatus": "unknown"
+    },
+    {
+      "name": "Microsoft 365",
+      "statusUrl": "https://status.office365.com/",
+      "description": "Messagerie, Teams, SharePoint",
+      "notes": "Consulter le Centre d'administration pour plus de détails.",
+      "source": {
+        "type": "none"
+      },
+      "fallbackStatus": "unknown"
+    },
+    {
+      "name": "Fasterize",
+      "statusUrl": "https://status.fasterize.com/",
+      "description": "Optimisation front-end",
+      "notes": "Page Statuspage.io",
+      "source": {
+        "type": "statuspage",
+        "api": "https://status.fasterize.com/api/v2/status.json",
+        "htmlFallback": true
+      },
+      "fallbackStatus": "unknown"
+    },
+    {
+      "name": "OVHcloud",
+      "statusUrl": "https://www.status-ovhcloud.com/",
+      "description": "Hébergement, réseau et cloud",
+      "notes": "Inclut incidents datacenters.",
+      "source": {
+        "type": "statuspage",
+        "api": "https://www.status-ovhcloud.com/api/v2/status.json",
+        "htmlFallback": true
+      },
+      "fallbackStatus": "unknown"
+    },
+    {
+      "name": "Doofinder",
+      "statusUrl": "https://status.doofinder.com/",
+      "description": "Moteur de recherche e-commerce",
+      "notes": "",
+      "source": {
+        "type": "statuspage",
+        "api": "https://status.doofinder.com/api/v2/status.json",
+        "apiCandidates": ["https://status.doofinder.com/api/v2/summary.json"],
+        "htmlFallback": true
+      },
+      "fallbackStatus": "unknown"
+    },
+    {
+      "name": "Sogecommerce",
+      "statusUrl": "https://sogecommerce.status.lyra.com/",
+      "description": "Paiement Société Générale",
+      "notes": "Scraping direct de la page publique sogecommerce.status.lyra.com.",
+      "source": {
+        "type": "html",
+        "html": {
+          "url": "https://sogecommerce.status.lyra.com/"
+        }
+      },
+      "fallbackStatus": "unknown"
+    },
+    {
+      "name": "Payplug",
+      "statusUrl": "https://status.payplug.com/",
+      "description": "Paiements en ligne",
+      "notes": "",
+      "source": {
+        "type": "statuspage",
+        "api": "https://status.payplug.com/api/v2/status.json",
+        "htmlFallback": true
+      },
+      "fallbackStatus": "unknown"
+    },
+    {
+      "name": "Stripe",
+      "statusUrl": "https://status.stripe.com/",
+      "description": "Paiements et facturation",
+      "notes": "Inclut incidents régionaux.",
+      "source": {
+        "type": "statuspage",
+        "api": "https://status.stripe.com/api/v2/status.json",
+        "htmlFallback": true
+      },
+      "fallbackStatus": "unknown"
+    },
+    {
+      "name": "Systempay / Lyra",
+      "statusUrl": "https://status.lyra.com/",
+      "description": "Solution de paiement Systempay",
+      "notes": "Suivi maintenance & incident.",
+      "source": {
+        "type": "statuspage",
+        "api": "https://status.lyra.com/api/v2/status.json",
+        "htmlFallback": true
+      },
+      "fallbackStatus": "unknown"
+    },
+    {
+      "name": "PostFinance",
+      "statusUrl": "https://status-checkout.postfinance.ch/",
+      "description": "Paiement PostFinance",
+      "notes": "Page checkout dédiée (status-checkout.postfinance.ch).",
+      "source": {
+        "type": "statuspage",
+        "api": "https://status-checkout.postfinance.ch/api/v2/status.json",
+        "apiCandidates": [
+          "https://status-checkout.postfinance.ch/api/v2/summary.json",
+          "https://status-checkout.postfinance.ch/api/status.json"
+        ],
+        "htmlFallback": true
+      },
+      "fallbackStatus": "unknown"
+    },
+    {
+      "name": "unyc Fibre",
+      "statusUrl": "https://most.unyc.io/",
+      "description": "Connectivité fibre unyc",
+      "notes": "",
+      "source": {
+        "type": "none"
+      },
+      "fallbackStatus": "unknown"
+    },
+    {
+      "name": "OpenAI",
+      "statusUrl": "https://status.openai.com/",
+      "description": "API OpenAI",
+      "notes": "",
+      "source": {
+        "type": "statuspage",
+        "api": "https://status.openai.com/api/v2/status.json",
+        "htmlFallback": true
+      },
+      "fallbackStatus": "unknown"
+    }
+  ]
+}
