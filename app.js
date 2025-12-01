@@ -7,6 +7,7 @@ const template = document.querySelector('#service-card');
 
 const AUTO_REFRESH_MS = 60_000;
 let servicesCache = [];
+const CACHE_PREFIX = 'status-cache:';
 
 const statusLabels = {
   operational: 'Opérationnel',
@@ -39,6 +40,35 @@ function mapStatuspageIndicator(indicator) {
 
 function normalizeText(text) {
   return (text || '').toLowerCase().replace(/\s+/g, ' ');
+}
+
+function cacheKey(service) {
+  return `${CACHE_PREFIX}${service.name}`;
+}
+
+function readCachedStatus(service) {
+  try {
+    const raw = localStorage.getItem(cacheKey(service));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed.status) return null;
+    return parsed;
+  } catch (error) {
+    console.warn('Cache navigateur illisible', error);
+    return null;
+  }
+}
+
+function writeCachedStatus(service, status) {
+  try {
+    const payload = {
+      ...status,
+      cachedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(cacheKey(service), JSON.stringify(payload));
+  } catch (error) {
+    console.warn('Impossible d\'écrire dans le cache navigateur', error);
+  }
 }
 
 function parseHtmlStatus(html) {
@@ -90,12 +120,26 @@ async function resolveServiceClient(service) {
 
   const htmlSourceUrl = service.source?.html?.url || service.statusUrl;
   const allowHtmlFallback = Boolean(service.source?.htmlFallback || service.source?.type === 'html');
+  const cached = readCachedStatus(service);
 
   if (service.source?.type === 'statuspage' && service.source.api) {
     try {
       const resolved = await fetchStatuspage(service.source.api);
-      return { ...base, ...resolved };
+      writeCachedStatus(service, resolved);
+      return { ...base, ...resolved, statusDetails: `${resolved.statusDetails} (API navigateur)` };
     } catch (error) {
+      if (cached) {
+        const cachedDate = cached.cachedAt
+          ? new Date(cached.cachedAt).toLocaleString('fr-FR')
+          : 'date inconnue';
+        return {
+          ...base,
+          status: cached.status,
+          statusDetails: `${cached.statusDetails || 'Statut mis en cache'} (cache navigateur · ${cachedDate}; échec API: ${
+            error.message
+          })`,
+        };
+      }
       if (allowHtmlFallback && htmlSourceUrl) {
         try {
           const scraped = await fetchHtmlStatus(htmlSourceUrl);
