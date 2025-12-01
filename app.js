@@ -22,9 +22,122 @@ const statusPriority = {
   operational: 3,
 };
 
+function mapStatuspageIndicator(indicator) {
+  switch (indicator) {
+    case 'none':
+      return 'operational';
+    case 'maintenance':
+    case 'minor':
+      return 'degraded';
+    case 'major':
+    case 'critical':
+      return 'down';
+    default:
+      return 'unknown';
+  }
+}
+
+function normalizeText(text) {
+  return (text || '').toLowerCase().replace(/\s+/g, ' ');
+}
+
+function parseHtmlStatus(html) {
+  const text = normalizeText(html);
+  const downMatch = /(critical|major outage|major incident|incident critique|panne|interruption)/i;
+  const degradedMatch = /(partial outage|degrad|minor issue|maintenance|maintenance planifiee|maintenance en cours)/i;
+  const operationalMatch = /(all systems operational|tous les systemes fonctionnent|operationnel|operational)/i;
+
+  if (downMatch.test(text)) return { status: 'down', statusDetails: 'Statut extrait du HTML (incident/critique)' };
+  if (degradedMatch.test(text))
+    return { status: 'degraded', statusDetails: 'Statut extrait du HTML (maintenance/dégradation)' };
+  if (operationalMatch.test(text)) return { status: 'operational', statusDetails: 'Statut extrait du HTML (opérationnel)' };
+
+  return { status: 'unknown', statusDetails: 'Statut HTML indéterminé' };
+}
+
+async function fetchStatuspage(apiUrl) {
+  const response = await fetch(apiUrl, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`Statuspage indisponible (${response.status})`);
+  }
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    throw new Error(`Réponse inattendue (Content-Type: ${contentType || 'inconnu'})`);
+  }
+  const payload = await response.json();
+  const indicator = payload?.status?.indicator;
+  const description = payload?.status?.description || '';
+  const status = mapStatuspageIndicator(indicator);
+  return { status, statusDetails: description || 'Statut fourni par Statuspage (navigateur)' };
+}
+
+async function fetchHtmlStatus(url) {
+  const response = await fetch(url, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`Scraping impossible (${response.status})`);
+  }
+  const html = await response.text();
+  return parseHtmlStatus(html);
+}
+
+async function resolveServiceClient(service) {
+  const base = {
+    name: service.name,
+    statusUrl: service.statusUrl,
+    description: service.description,
+    notes: service.notes || '',
+  };
+
+  const htmlSourceUrl = service.source?.html?.url || service.statusUrl;
+  const allowHtmlFallback = Boolean(service.source?.htmlFallback || service.source?.type === 'html');
+
+  if (service.source?.type === 'statuspage' && service.source.api) {
+    try {
+      const resolved = await fetchStatuspage(service.source.api);
+      return { ...base, ...resolved };
+    } catch (error) {
+      if (allowHtmlFallback && htmlSourceUrl) {
+        try {
+          const scraped = await fetchHtmlStatus(htmlSourceUrl);
+          return { ...base, ...scraped, statusDetails: `${scraped.statusDetails} (fallback HTML depuis le navigateur)` };
+        } catch (htmlError) {
+          return {
+            ...base,
+            status: service.fallbackStatus || 'unknown',
+            statusDetails: `Impossible de récupérer le statut (Statuspage: ${error.message}; HTML: ${htmlError.message})`,
+          };
+        }
+      }
+      return {
+        ...base,
+        status: service.fallbackStatus || 'unknown',
+        statusDetails: `Impossible de récupérer le statut (Statuspage navigateur) : ${error.message}`,
+      };
+    }
+  }
+
+  if (service.source?.type === 'html' && htmlSourceUrl) {
+    try {
+      const scraped = await fetchHtmlStatus(htmlSourceUrl);
+      return { ...base, ...scraped };
+    } catch (error) {
+      return {
+        ...base,
+        status: service.fallbackStatus || 'unknown',
+        statusDetails: `Impossible de récupérer le statut (HTML navigateur) : ${error.message}`,
+      };
+    }
+  }
+
+  return {
+    ...base,
+    status: service.fallbackStatus || 'unknown',
+    statusDetails: service.source?.type === 'none' ? 'Aucune API de statut déclarée' : 'Source non configurée',
+  };
+}
+
 async function loadServices() {
-  // Try dynamic aggregation first (requires the Node backend). If unavailable (e.g. GitHub Pages),
-  // fall back to the static services.json to keep the dashboard usable.
+  // 1) Essai du backend (/api/status)
   try {
     const response = await fetch('/api/status', { cache: 'no-store' });
     if (!response.ok) {
@@ -38,26 +151,45 @@ async function loadServices() {
     return {
       services: payload.services ?? [],
       fetchedAt: payload.fetchedAt ?? new Date().toISOString(),
-      isFallback: false,
+      mode: 'backend',
     };
   } catch (error) {
-    console.warn('Collecte dynamique indisponible, passage au mode statique', error);
+    console.warn('Collecte dynamique via backend indisponible, essai navigateur direct', error);
+  }
+
+  // 2) Essai direct depuis le navigateur (GitHub Pages ou hébergement statique avec CORS autorisé)
+  try {
     const staticResponse = await fetch('./services.json', { cache: 'no-store' });
     if (!staticResponse.ok) {
-      throw new Error("Impossible de récupérer les statuts dynamiques ni la sauvegarde statique");
+      throw new Error("Impossible de récupérer la configuration des services");
     }
     const payload = await staticResponse.json();
-    const services = (payload.services ?? []).map((service) => ({
-      ...service,
-      status: service.status ?? service.fallbackStatus ?? 'unknown',
-      statusDetails: 'Chargé depuis la configuration statique (aucun backend disponible)',
-    }));
+    const services = await Promise.all((payload.services ?? []).map((service) => resolveServiceClient(service)));
     return {
       services,
       fetchedAt: new Date().toISOString(),
-      isFallback: true,
+      mode: 'browser',
     };
+  } catch (error) {
+    console.warn('Collecte côté navigateur indisponible, passage à la sauvegarde statique', error);
   }
+
+  // 3) Mode statique pur (services.json uniquement)
+  const staticResponse = await fetch('./services.json', { cache: 'no-store' });
+  if (!staticResponse.ok) {
+    throw new Error("Impossible de récupérer les statuts dynamiques ni la sauvegarde statique");
+  }
+  const payload = await staticResponse.json();
+  const services = (payload.services ?? []).map((service) => ({
+    ...service,
+    status: service.status ?? service.fallbackStatus ?? 'unknown',
+    statusDetails: 'Chargé depuis la configuration statique (aucun backend disponible)',
+  }));
+  return {
+    services,
+    fetchedAt: new Date().toISOString(),
+    mode: 'static',
+  };
 }
 
 function createCard(service) {
@@ -170,13 +302,17 @@ async function toggleFullscreen() {
 async function bootstrap() {
   async function refreshAndRender() {
     try {
-      const { services, fetchedAt, isFallback } = await loadServices();
+      const { services, fetchedAt, mode } = await loadServices();
       servicesCache = sortServices(services);
       renderSummary(servicesCache);
       renderServices(servicesCache);
-      lastUpdated.textContent = isFallback
-        ? 'Dernière mise à jour : mode statique (backend indisponible)'
-        : `Dernière mise à jour : ${new Date(fetchedAt).toLocaleString('fr-FR')}`;
+      const modeLabel =
+        mode === 'backend'
+          ? `Données dynamiques (backend)`
+          : mode === 'browser'
+          ? 'Données dynamiques (navigateur)'
+          : 'Mode statique (configuration locale)';
+      lastUpdated.textContent = `Dernière mise à jour : ${new Date(fetchedAt).toLocaleString('fr-FR')} · ${modeLabel}`;
     } catch (error) {
       console.error('Erreur de rafraîchissement des statuts', error);
       summary.innerHTML = `<div class="summary-banner" style="color:#fca5a5;border-color:rgba(248,113,113,0.4);background:rgba(248,113,113,0.08)">Erreur : ${error.message}</div>`;
