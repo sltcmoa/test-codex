@@ -1,0 +1,15 @@
+{
+  "name": "status-wall",
+  "version": "1.0.0",
+  "description": "Tableau de bord dynamique pour agréger les pages de statut fournisseurs.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "PORT=3000 node server.js",
+    "lint:json": "python -m json.tool services.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
