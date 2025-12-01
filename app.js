@@ -73,14 +73,51 @@ function writeCachedStatus(service, status) {
 
 function parseHtmlStatus(html) {
   const text = normalizeText(html);
-  const operationalMatch = /(all systems operational|tous les systemes fonctionnent|operationnel|operational)/i;
-  const degradedMatch = /(partial outage|degrad|minor issue|maintenance|maintenance planifiee|maintenance en cours)/i;
-  const downMatch = /(critical|major outage|major incident|incident critique|panne|interruption)/i;
 
-  if (operationalMatch.test(text)) return { status: 'operational', statusDetails: 'Statut extrait du HTML (opérationnel)' };
-  if (degradedMatch.test(text))
+  const operationalHints = [
+    'all systems operational',
+    'all systems are operational',
+    'tous les systemes fonctionnent',
+    'tous les systèmes fonctionnent',
+    'operationnel',
+    'operational',
+    'no incidents reported',
+    'no incidents or maintenance reported',
+    'aucun incident signale',
+  ];
+
+  if (operationalHints.some((hint) => text.includes(hint))) {
+    return { status: 'operational', statusDetails: 'Statut extrait du HTML (opérationnel)' };
+  }
+
+  const degradedHints = [
+    'partial outage',
+    'degrad',
+    'minor issue',
+    'maintenance',
+    'maintenance planifiee',
+    'maintenance en cours',
+    'degraded performance',
+    'planned maintenance',
+  ];
+
+  if (degradedHints.some((hint) => text.includes(hint))) {
     return { status: 'degraded', statusDetails: 'Statut extrait du HTML (maintenance/dégradation)' };
-  if (downMatch.test(text)) return { status: 'down', statusDetails: 'Statut extrait du HTML (incident/critique)' };
+  }
+
+  const downHints = [
+    'major outage',
+    'major incident',
+    'critical',
+    'incident critique',
+    'panne',
+    'interruption',
+    'service disruption',
+  ];
+
+  if (downHints.some((hint) => text.includes(hint))) {
+    return { status: 'down', statusDetails: 'Statut extrait du HTML (incident/critique)' };
+  }
 
   return { status: 'unknown', statusDetails: 'Statut HTML indéterminé' };
 }
