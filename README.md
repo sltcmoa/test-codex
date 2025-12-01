@@ -10,6 +10,29 @@ Tableau de bord dynamique qui agrège les statuts des fournisseurs (Zoho, Micros
 3. Ouvrez le tableau de bord sur http://localhost:3000 (ou le port choisi).
 4. Les données sont rechargées automatiquement toutes les 60 secondes. Cliquez sur « Recharger les données » pour forcer un rafraîchissement immédiat.
 
+### Procédure rapide pour tester en local (CORS contourné)
+
+1. Cloner ou récupérer le projet sur votre machine :
+   ```bash
+   git clone <votre-fork-ou-repo.git>
+   cd test-codex
+   ```
+2. Vérifier que Node.js 18+ est installé (`node -v`). Aucun `npm install` n’est nécessaire (pas de dépendances externes), le serveur n’utilise que les modules natifs.
+3. Démarrer le backend qui sert les fichiers statiques **et** fait les appels API côté serveur (donc sans CORS) :
+   ```bash
+   npm run start
+   # ou PORT=8080 npm run start
+   ```
+   La console doit afficher `Dashboard serveur démarré sur http://localhost:3000` (ou le port choisi).
+4. Ouvrir http://localhost:3000 dans le navigateur. Les appels `/api/status` sont faits depuis le backend Node, ce qui évite les blocages CORS des APIs tierces.
+5. Vérifier que le backend récupère bien les statuts dynamiques :
+   ```bash
+   curl -s http://localhost:3000/api/status | python -m json.tool | head
+   ```
+   Si une source est injoignable, un message d’erreur apparaîtra dans `statusDetails`; sinon vous verrez l’état agrégé.
+6. (Optionnel) Pour garder la machine dédiée en plein écran : ouvrir la page, cliquer sur « Plein écran », puis laisser tourner. Le rafraîchissement automatique toutes les 60 s relèvera les incidents sans interaction.
+
+
 ### Affichage plein écran (mur d'écrans)
 
 - La page est optimisée pour un affichage plein écran : large grille, cartes contrastées et bandeau de synthèse lisible à distance.
