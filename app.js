@@ -71,7 +71,7 @@ function writeCachedStatus(service, status) {
   }
 }
 
-function parseHtmlStatus(html) {
+function parseHtmlStatus(html, { preferH1 = false } = {}) {
   const text = normalizeText(html);
 
   const operationalHints = [
@@ -80,15 +80,12 @@ function parseHtmlStatus(html) {
     'tous les systemes fonctionnent',
     'tous les systèmes fonctionnent',
     'operationnel',
+    'operationnels',
     'operational',
     'no incidents reported',
     'no incidents or maintenance reported',
     'aucun incident signale',
   ];
-
-  if (operationalHints.some((hint) => text.includes(hint))) {
-    return { status: 'operational', statusDetails: 'Statut extrait du HTML (opérationnel)' };
-  }
 
   const degradedHints = [
     'partial outage',
@@ -101,10 +98,6 @@ function parseHtmlStatus(html) {
     'planned maintenance',
   ];
 
-  if (degradedHints.some((hint) => text.includes(hint))) {
-    return { status: 'degraded', statusDetails: 'Statut extrait du HTML (maintenance/dégradation)' };
-  }
-
   const downHints = [
     'major outage',
     'major incident',
@@ -114,6 +107,30 @@ function parseHtmlStatus(html) {
     'interruption',
     'service disruption',
   ];
+
+  if (preferH1) {
+    const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+    if (h1Match) {
+      const h1Text = normalizeText(h1Match[1]);
+      if (operationalHints.some((hint) => h1Text.includes(hint))) {
+        return { status: 'operational', statusDetails: 'Statut extrait du H1 (opérationnel)' };
+      }
+      if (degradedHints.some((hint) => h1Text.includes(hint))) {
+        return { status: 'degraded', statusDetails: 'Statut extrait du H1 (maintenance/dégradation)' };
+      }
+      if (downHints.some((hint) => h1Text.includes(hint))) {
+        return { status: 'down', statusDetails: 'Statut extrait du H1 (incident/critique)' };
+      }
+    }
+  }
+
+  if (operationalHints.some((hint) => text.includes(hint))) {
+    return { status: 'operational', statusDetails: 'Statut extrait du HTML (opérationnel)' };
+  }
+
+  if (degradedHints.some((hint) => text.includes(hint))) {
+    return { status: 'degraded', statusDetails: 'Statut extrait du HTML (maintenance/dégradation)' };
+  }
 
   if (downHints.some((hint) => text.includes(hint))) {
     return { status: 'down', statusDetails: 'Statut extrait du HTML (incident/critique)' };
@@ -161,13 +178,18 @@ async function fetchStatuspageWithCandidates(primaryApiUrl, candidates = []) {
   throw new Error(tried.join(' ; '));
 }
 
-async function fetchHtmlStatus(url) {
+async function fetchHtmlStatus(url, options = {}) {
   const response = await fetch(url, { cache: 'no-store' });
   if (!response.ok) {
     throw new Error(`Scraping impossible (${response.status})`);
   }
   const html = await response.text();
-  return parseHtmlStatus(html);
+  return parseHtmlStatus(html, options);
+}
+
+function preferH1Only(service) {
+  const name = (service.name || '').toLowerCase();
+  return name.includes('doofinder') || name.includes('sogecommerce') || name.includes('lyra');
 }
 
 async function resolveServiceClient(service) {
@@ -202,7 +224,7 @@ async function resolveServiceClient(service) {
       }
       if (allowHtmlFallback && htmlSourceUrl) {
         try {
-          const scraped = await fetchHtmlStatus(htmlSourceUrl);
+          const scraped = await fetchHtmlStatus(htmlSourceUrl, { preferH1: preferH1Only(service) });
           return { ...base, ...scraped, statusDetails: `${scraped.statusDetails} (fallback HTML depuis le navigateur)` };
         } catch (htmlError) {
           return {
@@ -222,7 +244,7 @@ async function resolveServiceClient(service) {
 
   if (service.source?.type === 'html' && htmlSourceUrl) {
     try {
-      const scraped = await fetchHtmlStatus(htmlSourceUrl);
+      const scraped = await fetchHtmlStatus(htmlSourceUrl, { preferH1: preferH1Only(service) });
       return { ...base, ...scraped };
     } catch (error) {
       return {

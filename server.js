@@ -59,27 +59,78 @@ function normalizeText(text) {
   return (text || '').toLowerCase().replace(/\s+/g, ' ');
 }
 
-function parseHtmlStatus(html) {
+function parseHtmlStatus(html, { preferH1 = false } = {}) {
   const text = normalizeText(html);
-  const downMatch = /(critical|major outage|major incident|incident critique|panne|interruption)/i;
-  const degradedMatch = /(partial outage|degrad|minor issue|maintenance|maintenance planifiee|maintenance en cours)/i;
-  const operationalMatch = /(all systems operational|tous les systemes fonctionnent|operationnel|operational)/i;
+  const operationalHints = [
+    'all systems operational',
+    'all systems are operational',
+    'tous les systemes fonctionnent',
+    'tous les systèmes fonctionnent',
+    'operationnel',
+    'operationnels',
+    'operational',
+  ];
+  const degradedHints = [
+    'partial outage',
+    'degrad',
+    'minor issue',
+    'maintenance',
+    'maintenance planifiee',
+    'maintenance en cours',
+    'degraded performance',
+    'planned maintenance',
+  ];
+  const downHints = [
+    'major outage',
+    'major incident',
+    'critical',
+    'incident critique',
+    'panne',
+    'interruption',
+    'service disruption',
+  ];
 
-  if (downMatch.test(text)) return { status: 'down', statusDetails: 'Statut extrait du HTML (incident/critique)' };
-  if (degradedMatch.test(text))
+  if (preferH1) {
+    const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+    if (h1Match) {
+      const h1Text = normalizeText(h1Match[1]);
+      if (operationalHints.some((hint) => h1Text.includes(hint))) {
+        return { status: 'operational', statusDetails: 'Statut extrait du H1 (opérationnel)' };
+      }
+      if (degradedHints.some((hint) => h1Text.includes(hint))) {
+        return { status: 'degraded', statusDetails: 'Statut extrait du H1 (maintenance/dégradation)' };
+      }
+      if (downHints.some((hint) => h1Text.includes(hint))) {
+        return { status: 'down', statusDetails: 'Statut extrait du H1 (incident/critique)' };
+      }
+    }
+  }
+
+  if (operationalHints.some((hint) => text.includes(hint))) {
+    return { status: 'operational', statusDetails: 'Statut extrait du HTML (opérationnel)' };
+  }
+  if (degradedHints.some((hint) => text.includes(hint))) {
     return { status: 'degraded', statusDetails: 'Statut extrait du HTML (maintenance/dégradation)' };
-  if (operationalMatch.test(text)) return { status: 'operational', statusDetails: 'Statut extrait du HTML (opérationnel)' };
+  }
+  if (downHints.some((hint) => text.includes(hint))) {
+    return { status: 'down', statusDetails: 'Statut extrait du HTML (incident/critique)' };
+  }
 
   return { status: 'unknown', statusDetails: 'Statut HTML indéterminé' };
 }
 
-async function fetchHtmlStatus(url) {
+async function fetchHtmlStatus(url, options = {}) {
   const response = await fetch(url, { cache: 'no-store', headers: DEFAULT_HEADERS });
   if (!response.ok) {
     throw new Error(`Scraping impossible (${response.status})`);
   }
   const html = await response.text();
-  return parseHtmlStatus(html);
+  return parseHtmlStatus(html, options);
+}
+
+function preferH1Only(service) {
+  const name = (service.name || '').toLowerCase();
+  return name.includes('doofinder') || name.includes('sogecommerce') || name.includes('lyra');
 }
 
 async function resolveService(service) {
@@ -100,7 +151,7 @@ async function resolveService(service) {
     } catch (error) {
       if (allowHtmlFallback && htmlSourceUrl) {
         try {
-          const scraped = await fetchHtmlStatus(htmlSourceUrl);
+          const scraped = await fetchHtmlStatus(htmlSourceUrl, { preferH1: preferH1Only(service) });
           return { ...base, ...scraped, statusDetails: `${scraped.statusDetails} (fallback HTML)` };
         } catch (htmlError) {
           return {
@@ -120,7 +171,7 @@ async function resolveService(service) {
 
   if (service.source?.type === 'html' && htmlSourceUrl) {
     try {
-      const scraped = await fetchHtmlStatus(htmlSourceUrl);
+      const scraped = await fetchHtmlStatus(htmlSourceUrl, { preferH1: preferH1Only(service) });
       return { ...base, ...scraped };
     } catch (error) {
       return {
