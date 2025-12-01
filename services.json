@@ -8,6 +8,7 @@
       "source": {
         "type": "statuspage",
         "api": "https://status.zoho.eu/api/v2/status.json",
+        "apiCandidates": ["https://status.zoho.eu/api/v2/summary.json"],
         "htmlFallback": true
       },
       "fallbackStatus": "unknown"
@@ -54,6 +55,7 @@
       "source": {
         "type": "statuspage",
         "api": "https://status.doofinder.com/api/v2/status.json",
+        "apiCandidates": ["https://status.doofinder.com/api/v2/summary.json"],
         "htmlFallback": true
       },
       "fallbackStatus": "unknown"
@@ -115,6 +117,10 @@
       "source": {
         "type": "statuspage",
         "api": "https://status-checkout.postfinance.ch/api/v2/status.json",
+        "apiCandidates": [
+          "https://status-checkout.postfinance.ch/api/v2/summary.json",
+          "https://status-checkout.postfinance.ch/api/status.json"
+        ],
         "htmlFallback": true
       },
       "fallbackStatus": "unknown"

@@ -73,14 +73,14 @@ function writeCachedStatus(service, status) {
 
 function parseHtmlStatus(html) {
   const text = normalizeText(html);
-  const downMatch = /(critical|major outage|major incident|incident critique|panne|interruption)/i;
-  const degradedMatch = /(partial outage|degrad|minor issue|maintenance|maintenance planifiee|maintenance en cours)/i;
   const operationalMatch = /(all systems operational|tous les systemes fonctionnent|operationnel|operational)/i;
+  const degradedMatch = /(partial outage|degrad|minor issue|maintenance|maintenance planifiee|maintenance en cours)/i;
+  const downMatch = /(critical|major outage|major incident|incident critique|panne|interruption)/i;
 
-  if (downMatch.test(text)) return { status: 'down', statusDetails: 'Statut extrait du HTML (incident/critique)' };
+  if (operationalMatch.test(text)) return { status: 'operational', statusDetails: 'Statut extrait du HTML (opérationnel)' };
   if (degradedMatch.test(text))
     return { status: 'degraded', statusDetails: 'Statut extrait du HTML (maintenance/dégradation)' };
-  if (operationalMatch.test(text)) return { status: 'operational', statusDetails: 'Statut extrait du HTML (opérationnel)' };
+  if (downMatch.test(text)) return { status: 'down', statusDetails: 'Statut extrait du HTML (incident/critique)' };
 
   return { status: 'unknown', statusDetails: 'Statut HTML indéterminé' };
 }
@@ -99,6 +99,29 @@ async function fetchStatuspage(apiUrl) {
   const description = payload?.status?.description || '';
   const status = mapStatuspageIndicator(indicator);
   return { status, statusDetails: description || 'Statut fourni par Statuspage (navigateur)' };
+}
+
+async function fetchStatuspageWithCandidates(primaryApiUrl, candidates = []) {
+  const tried = [];
+  const allCandidates = [primaryApiUrl, ...candidates];
+
+  if (primaryApiUrl?.endsWith('status.json')) {
+    const summaryCandidate = primaryApiUrl.replace(/status\.json$/, 'summary.json');
+    if (!allCandidates.includes(summaryCandidate)) {
+      allCandidates.push(summaryCandidate);
+    }
+  }
+
+  for (const url of allCandidates.filter(Boolean)) {
+    try {
+      const status = await fetchStatuspage(url);
+      return { ...status, statusDetails: `${status.statusDetails} (API ${url})` };
+    } catch (error) {
+      tried.push(`${url} → ${error.message}`);
+    }
+  }
+
+  throw new Error(tried.join(' ; '));
 }
 
 async function fetchHtmlStatus(url) {
@@ -124,7 +147,7 @@ async function resolveServiceClient(service) {
 
   if (service.source?.type === 'statuspage' && service.source.api) {
     try {
-      const resolved = await fetchStatuspage(service.source.api);
+      const resolved = await fetchStatuspageWithCandidates(service.source.api, service.source.apiCandidates);
       writeCachedStatus(service, resolved);
       return { ...base, ...resolved, statusDetails: `${resolved.statusDetails} (API navigateur)` };
     } catch (error) {

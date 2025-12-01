@@ -47,7 +47,8 @@ Tableau de bord dynamique qui agrège les statuts des fournisseurs (Zoho, Micros
 - Quand il est disponible, le serveur Node interroge ces API (`/api/v2/status.json`) côté backend pour contourner les restrictions CORS, valide que la réponse est bien du JSON, puis renvoie un JSON agrégé à l’interface (`/api/status`).
 - Si aucun backend n’est joignable (GitHub Pages, hébergement purement statique), le navigateur appelle directement les API/HTML des fournisseurs. Chaque succès JSON est conservé en cache local (localStorage) afin de réutiliser la dernière réponse API si une requête ultérieure échoue temporairement.
 - En cas d’échec JSON, un fallback de scraping HTML est tenté quand `htmlFallback` ou `type: "html"` est renseigné (ex. Sogecommerce via `https://sogecommerce.status.lyra.com/`).
-- Les indicateurs Statuspage sont mappés vers les états du dashboard : `none` → `operational`, `maintenance`/`minor` → `degraded`, `major`/`critical` → `down`, sinon `unknown`. Pour le scraping HTML, le serveur recherche des mots-clés (opérationnel, maintenance, incident) pour déterminer l’état.
+- Les indicateurs Statuspage sont mappés vers les états du dashboard : `none` → `operational`, `maintenance`/`minor` → `degraded`, `major`/`critical` → `down`, sinon `unknown`. Pour le scraping HTML, le serveur recherche des mots-clés (opérationnel, maintenance, incident) pour déterminer l’état, en priorisant les mentions "All systems operational" afin d’éviter les faux positifs liés à l’historique des incidents.
+- Lorsqu’un endpoint Statuspage renvoie 404/500 ou un autre format, le client essaie automatiquement des variantes (`summary.json` ou `apiCandidates` définis dans `services.json`) avant de repasser en cache ou en scraping HTML.
 - Si une source n’expose pas d’API ni de fallback HTML, le service est retourné en `unknown` avec une note explicite. Ajoutez une source compatible si vous disposez d’une API interne ou publique.
 
 ## Mettre à jour la liste
